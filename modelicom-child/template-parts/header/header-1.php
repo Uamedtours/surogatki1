@@ -11,8 +11,9 @@ $options = modelicom_get_options();
 $section = modelicom_get_section_options( $options, 'header_' );
 $hide_search = $options['meta_search'];
 $hide_login = $options['meta_login'];
-$ogloszenie_page = get_page_by_title( 'Dodaj swoje ogłoszenie' );
-$ogloszenie_url = $ogloszenie_page ? get_permalink( $ogloszenie_page ) : '#';
+$ogloszenie_page_id = get_option( 'modelicom_child_ogloszenie_page_id' );
+$ogloszenie_page = $ogloszenie_page_id ? get_post( $ogloszenie_page_id ) : get_page_by_path( 'dodaj-swoje-ogloszenie' );
+$ogloszenie_url = $ogloszenie_page ? get_permalink( $ogloszenie_page ) : home_url( '/dodaj-swoje-ogloszenie/' );
 
 ?>
 
