@@ -11,6 +11,8 @@ $options = modelicom_get_options();
 $section = modelicom_get_section_options( $options, 'header_' );
 $hide_search = $options['meta_search'];
 $hide_login = $options['meta_login'];
+$ogloszenie_page = get_page_by_title( 'Dodaj swoje ogłoszenie' );
+$ogloszenie_url = $ogloszenie_page ? get_permalink( $ogloszenie_page ) : '#';
 
 ?>
 
@@ -38,6 +40,10 @@ $hide_login = $options['meta_login'];
             <div class="col-5 col-lg-2 text-left text-lg-right top-includes-icon order-2 order-lg-3">
 				
                 <!-- Delete login and search -->
+
+                <div class="header-cta mb-2 mb-lg-0">
+                    <a class="btn btn-maincolor" href="<?php echo esc_url( $ogloszenie_url ); ?>">Dodaj swoje ogłoszenie</a>
+                </div>
 
                 <div class="drop-meta">
 	                <?php if ( ! empty ( $options['meta_phone'] ) ) : ?>
