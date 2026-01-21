@@ -42,10 +42,6 @@ $ogloszenie_url = $ogloszenie_page ? get_permalink( $ogloszenie_page ) : home_ur
 				
                 <!-- Delete login and search -->
 
-                <div class="header-cta mb-2 mb-lg-0">
-                    <a class="btn btn-maincolor" href="<?php echo esc_url( $ogloszenie_url ); ?>">Dodaj swoje ogłoszenie</a>
-                </div>
-
                 <div class="drop-meta">
 	                <?php if ( ! empty ( $options['meta_phone'] ) ) : ?>
                         <div class="dropdown">
