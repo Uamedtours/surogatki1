@@ -9,6 +9,7 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['ogloszenie_nonce'] 
 	if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['ogloszenie_nonce'] ) ), 'ogloszenie_submit' ) ) {
 		$fields = array(
 			'Imię' => isset( $_POST['ogloszenie_name'] ) ? sanitize_text_field( wp_unslash( $_POST['ogloszenie_name'] ) ) : '',
+			'E-mail' => isset( $_POST['ogloszenie_email'] ) ? sanitize_email( wp_unslash( $_POST['ogloszenie_email'] ) ) : '',
 			'Z jakiego kraju' => isset( $_POST['ogloszenie_country'] ) ? sanitize_text_field( wp_unslash( $_POST['ogloszenie_country'] ) ) : '',
 			'Jakimi językami rozmawia' => isset( $_POST['ogloszenie_languages'] ) ? sanitize_text_field( wp_unslash( $_POST['ogloszenie_languages'] ) ) : '',
 			'Waga' => isset( $_POST['ogloszenie_weight'] ) ? sanitize_text_field( wp_unslash( $_POST['ogloszenie_weight'] ) ) : '',
@@ -32,6 +33,7 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['ogloszenie_nonce'] 
 		}
 
 		$attachments = array();
+		$upload_error = false;
 		if ( ! empty( $_FILES['ogloszenie_photo']['name'] ) ) {
 			require_once ABSPATH . 'wp-admin/includes/file.php';
 			$uploaded = wp_handle_upload( $_FILES['ogloszenie_photo'], array( 'test_form' => false ) );
@@ -39,15 +41,23 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['ogloszenie_nonce'] 
 				$attachments[] = $uploaded['file'];
 				$message_lines[] = 'Zdjęcie: załączone w wiadomości';
 			} else {
+				$upload_error = true;
 				$message_lines[] = 'Zdjęcie: nie udało się załączyć';
 			}
+		} else {
+			$upload_error = true;
+			$message_lines[] = 'Zdjęcie: nie dodano (pole wymagane)';
 		}
 
-		$subject = 'Nowe ogłoszenie: Dodaj swoje ogłoszenie';
-		$body = implode( "\n", $message_lines );
+		if ( $upload_error || empty( $fields['E-mail'] ) ) {
+			$form_status = 'error';
+		} else {
+			$subject = 'Nowe ogłoszenie: Dodaj swoje ogłoszenie';
+			$body = implode( "\n", $message_lines );
 
-		$mail_sent = wp_mail( 'inbox@uamedtours.com', $subject, $body, array( 'Content-Type: text/plain; charset=UTF-8' ), $attachments );
-		$form_status = $mail_sent ? 'success' : 'error';
+			$mail_sent = wp_mail( 'inbox@uamedtours.com', $subject, $body, array( 'Content-Type: text/plain; charset=UTF-8' ), $attachments );
+			$form_status = $mail_sent ? 'success' : 'error';
+		}
 	} else {
 		$form_status = 'error';
 	}
@@ -66,26 +76,32 @@ get_header();
 				<?php elseif ( 'error' === $form_status ) : ?>
 					<div class="alert alert-danger" role="alert">Wystąpił błąd podczas wysyłki. Spróbuj ponownie.</div>
 				<?php endif; ?>
-				<form class="form-wrapper big-form c-gutter-30 c-mb-30" method="post" enctype="multipart/form-data">
-					<?php wp_nonce_field( 'ogloszenie_submit', 'ogloszenie_nonce' ); ?>
-					<div class="row">
-						<div class="col-lg-6">
+					<form class="form-wrapper big-form c-gutter-30 c-mb-30" method="post" enctype="multipart/form-data">
+						<?php wp_nonce_field( 'ogloszenie_submit', 'ogloszenie_nonce' ); ?>
+						<div class="row">
+							<div class="col-lg-6">
 							<div class="form-group has-placeholder">
 								<label for="ogloszenie-name">Imię</label>
 								<input id="ogloszenie-name" name="ogloszenie_name" type="text" class="form-control" placeholder="Imię" required>
 							</div>
-						</div>
-						<div class="col-lg-6">
-							<div class="form-group has-placeholder">
-								<label for="ogloszenie-country">Z jakiego kraju</label>
-								<input id="ogloszenie-country" name="ogloszenie_country" type="text" class="form-control" placeholder="Z jakiego kraju" required>
 							</div>
-						</div>
-						<div class="col-lg-6">
-							<div class="form-group has-placeholder">
-								<label for="ogloszenie-languages">Jakimi językami rozmawia</label>
-								<input id="ogloszenie-languages" name="ogloszenie_languages" type="text" class="form-control" placeholder="Jakimi językami rozmawia" required>
+							<div class="col-lg-6">
+								<div class="form-group has-placeholder">
+									<label for="ogloszenie-country">Z jakiego kraju</label>
+									<input id="ogloszenie-country" name="ogloszenie_country" type="text" class="form-control" placeholder="Z jakiego kraju" required>
+								</div>
 							</div>
+							<div class="col-lg-6">
+								<div class="form-group has-placeholder">
+									<label for="ogloszenie-email">E-mail</label>
+									<input id="ogloszenie-email" name="ogloszenie_email" type="email" class="form-control" placeholder="E-mail" required>
+								</div>
+							</div>
+							<div class="col-lg-6">
+								<div class="form-group has-placeholder">
+									<label for="ogloszenie-languages">Jakimi językami rozmawia</label>
+									<input id="ogloszenie-languages" name="ogloszenie_languages" type="text" class="form-control" placeholder="Jakimi językami rozmawia" required>
+								</div>
 						</div>
 						<div class="col-lg-3">
 							<div class="form-group has-placeholder">
@@ -165,12 +181,12 @@ get_header();
 								<input id="ogloszenie-experience" name="ogloszenie_experience" type="text" class="form-control" placeholder="Doświadczenie w programie" required>
 							</div>
 						</div>
-						<div class="col-12">
-							<div class="form-group has-placeholder">
-								<label for="ogloszenie-photo">Zdjęcie</label>
-								<input id="ogloszenie-photo" name="ogloszenie_photo" type="file" class="form-control" accept="image/*">
+							<div class="col-12">
+								<div class="form-group has-placeholder">
+									<label for="ogloszenie-photo">Zdjęcie</label>
+									<input id="ogloszenie-photo" name="ogloszenie_photo" type="file" class="form-control" accept="image/*" required>
+								</div>
 							</div>
-						</div>
 					</div>
 					<div class="wrap-forms wrap-forms-buttons mt-10 mt-lg-35 mb-1">
 						<div class="form-group">
