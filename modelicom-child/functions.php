@@ -41,6 +41,35 @@ function theme_name_scripts() {
 	// wp_enqueue_script( 'script-name', get_template_directory_uri() . '/js/example.js', array(), '1.0.0', true );
 }
 
+function modelicom_child_register_ogloszenie_page() {
+	$page_id = get_option( 'modelicom_child_ogloszenie_page_id' );
+	if ( $page_id && get_post_status( $page_id ) ) {
+		return;
+	}
+
+	$existing_page = get_page_by_path( 'dodaj-swoje-ogloszenie' );
+	if ( $existing_page ) {
+		update_option( 'modelicom_child_ogloszenie_page_id', $existing_page->ID );
+		return;
+	}
+
+	$page_id = wp_insert_post(
+		array(
+			'post_title'   => 'Dodaj swoje ogłoszenie',
+			'post_name'    => 'dodaj-swoje-ogloszenie',
+			'post_status'  => 'publish',
+			'post_type'    => 'page',
+			'post_content' => '',
+		)
+	);
+
+	if ( $page_id && ! is_wp_error( $page_id ) ) {
+		update_post_meta( $page_id, '_wp_page_template', 'page-dodaj-swoje-ogloszenie.php' );
+		update_option( 'modelicom_child_ogloszenie_page_id', $page_id );
+	}
+}
+add_action( 'init', 'modelicom_child_register_ogloszenie_page' );
+
 // отключение всех автоматических обновлений
 add_filter('automatic_updater_disabled', '__return_true');
 
